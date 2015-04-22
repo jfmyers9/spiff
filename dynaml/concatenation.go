@@ -2,6 +2,7 @@ package dynaml
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cloudfoundry-incubator/spiff/yaml"
 )
@@ -22,10 +23,9 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 		return nil, false
 	}
 
-	astring, aok := a.Value().(string)
-	bstring, bok := b.Value().(string)
-	if aok && bok {
-		return node(astring + bstring), true
+	val, ok := concatenate(a, b)
+	if ok {
+		return node(val), true
 	}
 
 	alist, aok := a.Value().([]yaml.Node)
@@ -39,4 +39,29 @@ func (e ConcatenationExpr) Evaluate(binding Binding) (yaml.Node, bool) {
 
 func (e ConcatenationExpr) String() string {
 	return fmt.Sprintf("%s %s", e.A, e.B)
+}
+
+func concatenate(a yaml.Node, b yaml.Node) (string, bool) {
+	aString, aOk := a.Value().(string)
+	if aOk {
+		bString, bOk := b.Value().(string)
+		if bOk {
+			return aString + bString, true
+		} else {
+			bInt, bOk := b.Value().(int64)
+			if bOk {
+				return aString + strconv.FormatInt(bInt, 10), true
+			}
+		}
+	} else {
+		aInt, aOk := a.Value().(int64)
+		if aOk {
+			bString, bOk := b.Value().(string)
+			if bOk {
+				return strconv.FormatInt(aInt, 10) + bString, true
+			}
+		}
+	}
+
+	return "", false
 }

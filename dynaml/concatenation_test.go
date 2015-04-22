@@ -21,13 +21,63 @@ var _ = Describe("concatenation", func() {
 		})
 
 		Context("and the right-hand side is NOT a string", func() {
-			It("fails", func() {
+			Context("and the right-hand side is an integer", func() {
+				It("concatenates both as strings", func() {
+					expr := ConcatenationExpr{
+						StringExpr{"two"},
+						IntegerExpr{42},
+					}
+
+					Expect(expr).To(EvaluateAs("two42", FakeBinding{}))
+				})
+			})
+
+			Context("and the right-hand side is not an integer", func() {
+				It("fails", func() {
+					expr := ConcatenationExpr{
+						StringExpr{"two"},
+						ListExpr{[]Expression{StringExpr{"one"}}},
+					}
+
+					Expect(expr).To(FailToEvaluate(FakeBinding{}))
+				})
+			})
+		})
+	})
+
+	Context("when the left-hand side is a int", func() {
+		Context("and the right-hand side is a string", func() {
+			It("concatenates both values", func() {
 				expr := ConcatenationExpr{
-					StringExpr{"two"},
 					IntegerExpr{42},
+					StringExpr{"two"},
 				}
 
-				Expect(expr).To(FailToEvaluate(FakeBinding{}))
+				Expect(expr).To(EvaluateAs("42two", FakeBinding{}))
+			})
+		})
+
+		Context("and the right-hand side is NOT a string", func() {
+			Context("and the right-hand side is an integer", func() {
+				It("fails", func() {
+					expr := ConcatenationExpr{
+						IntegerExpr{84},
+						IntegerExpr{42},
+					}
+
+					Expect(expr).To(FailToEvaluate(FakeBinding{}))
+				})
+			})
+
+			Context("and the right-hand side is not an integer", func() {
+				It("fails", func() {
+					expr := ConcatenationExpr{
+						IntegerExpr{42},
+						ListExpr{[]Expression{StringExpr{"one"}}},
+					}
+
+					Expect(expr).To(FailToEvaluate(FakeBinding{}))
+				})
 			})
 		})
 	})
